@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>冷能智算系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+        }
+
+        body {
+            background-color: #f2f2f2;
+            padding: 30px;
+            min-width: 980px;
+        }
+
+        /* 冷能智算系统窗口样式 */
+        .app-window {
+            width: 950px;
+            height: 620px;
+            background-color: #1e1e1e;
+            border: 1px solid #ccc;
+            border-radius: 4px 4px 0 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.6);
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 标题栏 */
+        .title-bar {
+            height: 32px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            border-bottom: 1px solid #bbb;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .window-title {
+            color: #222;
+        }
+
+        .window-buttons {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+        }
+
+        .window-buttons span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: block;
+            cursor: pointer;
+        }
+
+        .min-btn { background-color: #ffbd2e; }
+        .max-btn { background-color: #28c840; }
+        .close-btn { background-color: #ff5454; }
+
+        /* 主内容区 - 垂直布局（图片+面板无重叠） */
+        .main-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            padding: 0;
+        }
+
+        /* 图片展示区（左右布局） */
+        .img-container {
+            flex: 1;
+            height: calc(100% - 190px); /* 增加面板区高度，避免挤压 */
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 左侧泵管图 - 充满且不溢出 */
+        .pump-img-box {
+            width: 75%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .pump-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        /* 右侧文字图 - 充满且不溢出 */
+        .text-img-box {
+            width: 25%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        /* 面板区 - 独立底部区域，增加高度避免挤压 */
+        .form-box {
+            height: 190px; /* 从180px增至190px，给面板更多空间 */
+            padding: 10px 15px;
+            display: flex;
+            gap: 5px; /* 贴合截图面板间距 */
+            background-color: rgba(30, 30, 30, 0.8);
+        }
+
+        /* 工况面板样式 - 完全贴合截图+按钮完整显示 */
+        .panel {
+            flex: 1;
+            background-color: #ffffff; /* 纯白背景贴合截图 */
+            border: 2px solid #000000; /* 黑色粗边框贴合截图 */
+            padding: 8px 8px 35px 8px; /* 底部预留足够按钮空间 */
+            border-radius: 0; /* 去掉圆角，贴合截图 */
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative; /* 按钮绝对定位参考面板 */
+        }
+
+        .panel h4 {
+            font-size: 14px;
+            color: #000; /* 黑色标题贴合截图 */
+            margin-bottom: 6px;
+            border-bottom: 1px solid #000; /* 黑色下划线贴合截图 */
+            padding-bottom: 2px;
+            font-weight: bold;
+        }
+
+        .panel ul {
+            list-style: none;
+            font-size: 13px;
+            color: #000; /* 黑色文字贴合截图 */
+            line-height: 1.6; /* 紧凑行高贴合截图 */
+        }
+
+        /* 按钮容器 - 彻底修复遮挡问题 */
+        .btn-wrap {
+            position: absolute; /* 绝对定位固定在面板底部 */
+            bottom: 8px; /* 距离面板底部8px，不遮挡 */
+            right: 8px; /* 距离右侧8px，贴合截图 */
+            width: auto;
+        }
+
+        button {
+            padding: 4px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #000; /* 黑色边框贴合截图 */
+            border-radius: 0; /* 去掉圆角 */
+            cursor: pointer;
+            font-size: 12px;
+            color: #000;
+            /* 确保按钮完整显示，无截断 */
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-window">
+        <!-- 标题栏 -->
+        <div class="title-bar">
+            <div class="window-title">冷能智算系统</div>
+            <div class="window-buttons">
+                <span class="min-btn"></span>
+                <span class="max-btn"></span>
+                <span class="close-btn"></span>
+            </div>
+        </div>
+
+        <!-- 主内容区 - 图片+面板无重叠 -->
+        <div class="main-area">
+            <!-- 图片展示区（替换左侧图片链接） -->
+            <div class="img-container">
+                <div class="pump-img-box">
+                    <img src="https://www.imgur.la/images/2026/01/15/036B91003E2D4C7731213F06384F8694.gif" alt="泵管仿真图" class="pump-img">
+                </div>
+                <div class="text-img-box">
+                    <img src="https://s41.ax1x.com/2026/01/15/pZrtuy8.png" alt="冷能智算系统" class="text-img">
+                </div>
+            </div>
+
+            <!-- 工况面板区 -->
+            <div class="form-box">
+                <div class="panel">
+                    <h4>输入工况</h4>
+                    <ul>
+                        <li>制冷剂质量流量</li>
+                        <li>油循环比</li>
+                        <li>流动方向</li>
+                        <li>配管规格</li>
+                        <li>蒸发器出口状态</li>
+                    </ul>
+                    <div class="btn-wrap">
+                        <button>输入工况</button>
+                    </div>
+                </div>
+                <div class="panel">
+                    <h4>输出工况</h4>
+                    <ul>
+                        <li>滞油量</li>
+                        <li>流动状态</li>
+                        <li>压降</li>
+                    </ul>
+                    <div class="btn-wrap">
+                        <button>输出结果</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
